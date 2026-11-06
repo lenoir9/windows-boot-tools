@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>المعايير المتقدمة لحرق أنظمة ويندوز وضبط خيارات الإقلاع عبر Rufus</title>
+  <meta name="description" content="دليل هندسي لشرح إعدادات برنامج Rufus وكيفية اختيار مخطط التقسيم GPT أو MBR وتجاوز متطلبات تثبيت ويندوز 11 بدقة.">
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-hover: #0369a1;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --accent-bg: #f0f9ff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, Tahoma, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.9;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 2.5rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--border);
+    }
+    header {
+      margin-bottom: 2rem;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 1.5rem;
+    }
+    h1 { font-size: 1.85rem; color: #0f172a; line-height: 1.4; margin-bottom: 0.75rem; }
+    .meta { font-size: 0.9rem; color: var(--text-muted); }
+    h2 { font-size: 1.35rem; color: #0f172a; margin-top: 2rem; margin-bottom: 1rem; border-right: 4px solid var(--primary); padding-right: 0.75rem; }
+    p { margin-bottom: 1.25rem; font-size: 1.05rem; color: #334155; }
+    ul, ol { margin-bottom: 1.5rem; padding-right: 1.5rem; }
+    li { margin-bottom: 0.75rem; font-size: 1.02rem; }
+    .callout { background: var(--accent-bg); border-right: 4px solid var(--primary); padding: 1.25rem 1.5rem; border-radius: 8px; margin: 1.75rem 0; }
+    a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    a:hover { color: var(--primary-hover); text-decoration: underline; }
+    footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: 0.9rem; color: var(--text-muted); text-align: center; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>المعايير المتقدمة لحرق أنظمة ويندوز وضبط خيارات الإقلاع عبر أداة Rufus</h1>
+      <div class="meta">توثيق فني لإدارة وسائط التثبيت وضبط قطاعات الإقلاع للأنظمة الحديثة</div>
+    </header>
+
+    <article>
+      <p>يعد برنامج Rufus المعيار القياسي والأداة الأكثر موثوقية لدى مهندسي الدعم الفني عندما يتعلق الأمر بكتابة صور أنظمة التشغيل على وسائط التخزين المحمولة USB. ورغم بساطة واجهة الاستخدام، فإن البرنامج ينفذ عمليات معقدة على مستوى قطاعات التخزين المنخفضة (Low-Level Sectors)، تضمن تهيئة القرص ليتوافق بدقة مع معمارية اللوحة الأم المستهدفة ونوع نظام الإدخال والإخراج الأساسي للعتاد.</p>
+
+      <h2>فهم الفروق الجوهرية بين مخططات التقسيم (GPT مقابل MBR)</h2>
+      <p>أحد أكثر الأخطاء شيوعاً التي تؤدي إلى فشل بدء التثبيت هو التحديد الخاطئ لمخطط التقسيم داخل الأداة؛ فكل نظام يفرض شروطاً محددة:</p>
+      <ul>
+        <li><strong>مخطط التقسيم الحديث GPT:</strong> يعتمد على <a href="https://en.wikipedia.org/wiki/GUID_Partition_Table" target="_blank" rel="noopener">جدول التقسيم المعرف فريداً GPT</a>، وهو متطلب إلزامي للأجهزة الحديثة التي تعمل بنظام الإقلاع UEFI. يتيح هذا المخطط استخدام أقراص تخزين تتجاوز مساحتها 2 تيرابايت، ويضمن سرعة إقلاع فائقة وتشفير أكثر أماناً عبر ميزة Secure Boot.</li>
+        <li><strong>مخطط التقسيم الكلاسيكي MBR:</strong> مخصص للحواسيب القديمة التي تستخدم واجهة BIOS التقليدية أو وضع التوافق القديم (CSM). يقتصر هذا المخطط على إنشاء 4 أقسام رئيسية بحد أقصى لحجم القرص لا يتجاوز 2 تيرابايت.</li>
+      </ul>
+
+      <h2>تخصيص تجربة التثبيت وتجاوز قيود مايكروسوفت</h2>
+      <p>يوفر الإصدار الحديث من البرنامج نافذة حوارية ذكية تُعرف باسم "Windows User Experience"، تظهر تلقائياً بمجرد اختيار ملف ISO لويندوز 11، وتقدم إمكانات تشغيلية استثنائية تشمل:</p>
+      <ul>
+        <li><strong>إلغاء متطلبات TPM 2.0 والذاكرة:</strong> تجاوز التحقق الإلزامي من وجود شريحة الحماية ووحدة المعالجة المعتمدة، مما يسمح بتثبيت النظام الحديث على الأجهزة المكتبية والمحمولة القديمة دون رسائل خطأ توقف الإعداد.</li>
+        <li><strong>تخطي حساب مايكروسوفت الإجباري:</strong> إنشاء حساب مستخدم محلي (Local Account) تلقائياً بنفس اسم المستخدم الحالي، دون الحاجة للاتصال بالإنترنت أثناء مرحلة OOBE الأولى.</li>
+        <li><strong>تعطيل جمع البيانات والقياس عن بعد (Telemetry):</strong> إيقاف أسئلة الخصوصية الافتراضية وحظر إرسال تقارير التشخيص إلى خوادم مايكروسوفت تلقائياً لتسريع استجابة الواجهة فور الانتهاء من التثبيت.</li>
+      </ul>
+
+      <div class="callout">
+        <p><strong>المصدر الرسمي والتطبيق العملي:</strong> يمكنك تحميل الحزمة الرسمية خفيفة الوزن والخالية من البرمجيات الإعلانية عبر <a href="https://rufus.ie/" target="_blank" rel="noopener">موقع Rufus الرسمي</a>. ولتطبيق هذه الخيارات بالخطوات المصورة خطوة بخطوة مع ضبط إعدادات الـ BIOS لتقرأ الفلاشة كأولوية أولى، راجع تعليمات <a href="https://tganj.com/burn-windows-to-usb-rufus/" target="_blank" rel="noopener">حرق ويندوز على فلاشة</a> لضمان عدم تلف ملفات التثبيت أثناء العملية.</p>
+      </div>
+
+      <h2>إجراءات تفادي تلف الفلاشة أثناء الكتابة المباشرة</h2>
+      <p>تتعرض بعض وحدات التخزين للتلف المفاجئ أو أخطاء التثبيت الناتجة عن قطاعات تالفة غير مرئية؛ لتفادي ذلك يوصى بالآتي:</p>
+      <ol>
+        <li><strong>تفعيل فحص القطاعات التالفة:</strong> يتيح Rufus خيار "Check device for bad blocks"؛ تفعيل هذا الخيار بدورة واحدة قبل بدء الحرق يفحص كافة خلايا الذاكرة للتأكد من سلامتها الفيزيائية.</li>
+        <li><strong>تحديد نظام الملفات المناسب:</strong> عند حرق ملفات ويندوز الحديثة التي تحتوي على ملف <code>install.wim</code> ضخم يتعدى 4 جيجابايت، احرص على اختيار نظام الملفات NTFS لضمان عدم انقطاع عملية النسخ في منتصفها.</li>
+        <li><strong>استخدام منافذ اللوحة الأم المباشرة:</strong> عند استخدام كمبيوتر مكتبي، قم بتوصيل الفلاشة في المنافذ الخلفية المتصلة مباشرة باللوحة الأم لتجنب انقطاع التيار الكهربائي اللحظي الذي قد يحدث في المنافذ الأمامية الضعيفة.</li>
+      </ol>
+    </article>
+
+    <footer>
+      <p>دليل إرشادي تقني مستقل مخصص لمهندسي الأنظمة وفنيي صيانة الحاسب الآلي.</p>
+    </footer>
+  </div>
+
+</body>
+</html>
