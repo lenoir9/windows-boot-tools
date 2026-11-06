@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>الدليل الفني لتشغيل فلاشة الإقلاع المتعدد باستخدام Ventoy</title>
+  <meta name="description" content="شرح شامل للهندسة المعمارية لأداة Ventoy وكيفية حرق أنظمة التشغيل المتعددة على فلاشة USB واحدة دون فورمات مع تجاوز قيود التثبيت.">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --accent-bg: #eff6ff;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, Tahoma, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.9;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 2.5rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--border);
+    }
+    header {
+      margin-bottom: 2rem;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 1.5rem;
+    }
+    h1 {
+      font-size: 2rem;
+      color: #0f172a;
+      line-height: 1.4;
+      margin-bottom: 0.75rem;
+    }
+    .meta {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    h2 {
+      font-size: 1.4rem;
+      color: #0f172a;
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+      border-right: 4px solid var(--primary);
+      padding-right: 0.75rem;
+    }
+    p {
+      margin-bottom: 1.25rem;
+      font-size: 1.05rem;
+      color: #334155;
+    }
+    ul, ol {
+      margin-bottom: 1.5rem;
+      padding-right: 1.5rem;
+    }
+    li {
+      margin-bottom: 0.75rem;
+      font-size: 1.02rem;
+    }
+    .callout {
+      background: var(--accent-bg);
+      border-right: 4px solid var(--primary);
+      padding: 1.25rem 1.5rem;
+      border-radius: 8px;
+      margin: 1.75rem 0;
+    }
+    a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+    a:hover {
+      color: var(--primary-hover);
+      text-decoration: underline;
+    }
+    footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>الدليل الفني لتشغيل فلاشة الإقلاع المتعدد باستخدام أداة Ventoy</h1>
+      <div class="meta">توثيق مفتوح المصدر لهندسة وسائط الإقلاع وصيانة أنظمة التشغيل</div>
+    </header>
+
+    <article>
+      <p>تعد أداة Ventoy واحدة من أهم القفزات التقنية في مجال صيانة الحواسيب وإدارة وسائط الإقلاع المحمولة؛ حيث تجاوزت تماماً المفهوم الكلاسيكي لحرق صور الأنظمة بصيغة ISO، والذي كان يجبر فني الصيانة والمستخدم على إعادة تهيئة الفلاشة (Format) في كل مرة يرغب فيها بتثبيت إصدار ويندوز مختلف أو تجربة توزيعة لينكس جديدة. بفضل هذه الأداة المفتوحة المصدر، بات بالإمكان تحويل وحدة تخزين USB عادية إلى بيئة إقلاع متعددة (Multiboot) متكاملة تدعم تشغيل عشرات الأنظمة بمجرد سحب الملف وإفلاته داخل القرص دون أي تعقيد.</p>
+
+      <h2>الهندسة المعمارية لعمل محمل الإقلاع في Ventoy</h2>
+      <p>على النقيض من برامج الحرق المعتادة التي تفكك أرشيف الـ ISO وتعيد كتابة قطاعات الإقلاع يدوياً على القرص، تستند Ventoy إلى بنية تقنية ذكية تعتمد على الخطوات التالية:</p>
+      <ul>
+        <li><strong>هيكلة القرص المزدوجة:</strong> تقسم الأداة الفلاشة إلى قطاعين منفصلين؛ الأول عبارة عن قسم مخفي وصغير بنظام ملفات FAT16/FAT32 يحتوي على نواة الأداة ومحمل إقلاع معدل من GRUB مع شهادات التوقيع الرقمي، بينما يُخصص القسم الثاني الأكبر لتخزين ملفات الـ ISO والملفات الشخصية بنظام exFAT أو NTFS ليتيح استيعاب ملفات تفوق مساحتها 4 جيجابايت.</li>
+        <li><strong>محاكاة القرص الوهمي في الذاكرة (Memory Hooking):</strong> عند اختيار ملف نظام من القائمة الرسومية، تزرع الأداة خطافاً برمجياً في ذاكرة الوصول العشوائي (RAM) يتعرف النظام من خلاله على صورة الـ ISO وكأنها قارئ أقراص ضوئية مادي حقيقي متصل بالجهاز، مما يتيح للنواة الإقلاع الكامل دون الحاجة لفك ضغط أي ملف على الفلاشة.</li>
+      </ul>
+
+      <h2>المزايا التشغيلية لمحترفي الدعم الفني</h2>
+      <p>تقدم الأداة مجموعة من الحلول الميدانية المتقدمة التي توفر الكثير من الوقت والمجهود:</p>
+      <ul>
+        <li><strong>التوافقية التلقائية الثنائية:</strong> تعمل الفلاشة بسلاسة تامة على الأجهزة القديمة التي تدعم نظام BIOS التقليدي (Legacy)، وكذلك على اللوحات الأم الحديثة المعتمدة على <a href="https://en.wikipedia.org/wiki/UEFI" target="_blank" rel="noopener">معيار الإقلاع الحديث UEFI</a> دون الحاجة إلى إعادة تبديل مخطط التقسيم بين MBR و GPT يدوياً.</li>
+        <li><strong>تجاوز قيود التثبيت الرسمية:</strong> تتيح الأداة تخطي متطلبات العتاد المعقدة في ويندوز 11 مثل التحقق الإلزامي من شريحة الأمان TPM 2.0، وميزة الإقلاع الآمن Secure Boot، ومطلب تسجيل الدخول عبر حساب مايكروسوفت، وذلك عبر تكوينات بسيطة في ملف <code>ventoy.json</code>.</li>
+        <li><strong>الحفاظ على وظيفة التخزين المعتادة:</strong> تستطيع استغلال المساحة المتبقية من الفلاشة لحفظ المستندات الشخصية، حزم البرامج الصامتة، وملفات الميديا دون أن يؤثر ذلك نهائياً على وظيفة الإقلاع التلقائي للأنظمة.</li>
+      </ul>
+
+      <div class="callout">
+        <p><strong>روابط المصادر والتحميل:</strong> يمكنك فحص الكود المصدري للمشروع ومتابعة التحديثات المستمرة عبر <a href="https://github.com/ventoy/Ventoy" target="_blank" rel="noopener">مستودع Ventoy الرسمي على GitHub</a>. وللحصول على الحزمة الموثوقة وكيفية تهيئة خيارات الإقلاع وتجاوز الشاشات الزرقاء، تفضل بمراجعة خطوات <a href="https://tganj.com/download-ventoy-multiboot-usb/" target="_blank" rel="noopener">تحميل برنامج Ventoy للكمبيوتر</a> للحصول على إعدادات مستقرة وآمنة.</p>
+      </div>
+
+      <h2>بروتوكول الاستقرار وتفادي أخطاء القراءة أثناء التثبيت</h2>
+      <p>لضمان عدم حدوث انهيار مفاجئ أثناء جلب ملفات النظام وتثبيتها عبر الفلاشة، يوصى باتباع الضوابط التقنية التالية:</p>
+      <ol>
+        <li><strong>الاعتماد على منافذ USB 3.0 السريعة:</strong> ترتبط سرعة تحميل الواجهة الرسومية لنظام التشغيل بمعدل نقل البيانات المتتابع لوحدة التخزين؛ لذا يفضل استخدام فلاشة أصلية ذات سرعات قراءة مرتفعة.</li>
+        <li><strong>التسمية القياسية لملفات النظام:</strong> تجنب وضع مسافات فارغة أو حروف غير لاتينية في أسماء ملفات الـ ISO المخزنة على الفلاشة، واستعض عنها بالشرطة السفلية (_) لتفادي أخطاء قراءة المسار داخل بيئة GRUB.</li>
+        <li><strong>التحقق من سلامة البصمة الرقمية:</strong> احرص دائماً على فحص قيمة الهاش (SHA256) لملف الـ ISO قبل نقله إلى الفلاشة لمطابقته مع البصمة الأصلية الصادرة من المطور والتأكد من خلوه من أي تلف ناتج عن مشاكل التحميل.</li>
+      </ol>
+    </article>
+
+    <footer>
+      <p>وثيقة إرشادية مستقلة مخصصة لمهندسي صيانة الحاسب وهواة نظم التشغيل مفتوحة المصدر.</p>
+    </footer>
+  </div>
+
+</body>
+</html>
